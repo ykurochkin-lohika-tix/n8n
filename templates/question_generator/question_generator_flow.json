@@ -1,0 +1,109 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "values": [
+          {
+            "name": "discipline",
+            "value": "={{ $('Start').item.json.discipline || 'Artificial Intelligence' }}"
+          }
+        ],
+        "options": {}
+      },
+      "name": "Set Discipline",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "model": "gemini-pro",
+        "systemPrompt": "You are a helpful assistant that generates study questions.",
+        "prompt": "Generate the top 20 questions to study and gain knowledge about the discipline of '{{ $('Set Discipline').item.json.discipline }}'. Provide the questions as a numbered list.",
+        "addOptions": {
+          "maxTokens": 2048,
+          "temperature": 0.7
+        }
+      },
+      "name": "Gemini AI LLM",
+      "type": "n8n-nodes-base.googleVertexAi",
+      "typeVersion": 1,
+      "position": [640, 300],
+      "credentials": {
+        "googleVertexAiApi": {
+          "id": "YOUR_GEMINI_CREDENTIALS_ID",
+          "resolve": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendRow",
+        "sheetId": "YOUR_SPREADSHEET_ID",
+        "sheetName": "Sheet1",
+        "values": {
+          "mode": "fromInput",
+          "value": [
+            {
+              "key": "Discipline",
+              "value": "={{ $('Set Discipline').item.json.discipline }}"
+            },
+            {
+              "key": "Questions",
+              "value": "={{ $('Gemini AI LLM').item.json.text }}"
+            }
+          ]
+        }
+      },
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [840, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIALS_ID",
+          "resolve": true
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Set Discipline",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Set Discipline": {
+      "main": [
+        [
+          {
+            "node": "Gemini AI LLM",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Gemini AI LLM": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  }
+}
