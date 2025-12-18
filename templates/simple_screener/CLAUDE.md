@@ -13,7 +13,7 @@ The workflow has two main phases:
 1. **Sector Search Phase**: Identify 5 potential U.S. sectors based on strategic importance, demand/supply dynamics, innovation maturity, geopolitical context, and risk resilience
 2. **Company Search Phase**: Within identified sectors, find and rank top 3 public companies per sector (up to 15 companies total) based on financial metrics, innovativeness, management quality, and risk factors
 
-**Expected Output**: A ranked list of up to 15 companies from potential sectors with comparative analysis and scenario planning (2-5 year horizon).
+**Expected Output**: A ranked list of up to 15 companies from potential sectors, each with a concise investment thesis (50 words) synthesizing financial metrics, innovation indicators, management quality, risk assessment, scenarios, and valuation. Each sector includes a comparative winner analysis.
 
 ## Key Requirements
 
@@ -70,6 +70,12 @@ From the reference workflow, a typical pattern is:
 
 ### Structured Output
 Use `outputParserStructured` with `jsonSchemaExample` to define expected JSON output structure. This ensures consistent, parseable responses from LLMs.
+
+**Current Output Schemas**:
+- **Sector Output**: Array of sectors with fields: sector_name, strategic_importance, demand_supply_analysis, innovation_stage, geopolitical_context, risks_resilience, overall_score
+- **Company Output**: Array with sector, companies (rank, company_name, ticker, investment_thesis limited to 50 words), and sector_winner (limited to 50 words)
+
+The simplified company output format consolidates detailed analysis (financials, innovation, management, risks, scenarios, valuation) into a concise investment_thesis field.
 
 ## Development Notes
 

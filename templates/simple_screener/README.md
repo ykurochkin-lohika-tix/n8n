@@ -23,7 +23,7 @@ The workflow consists of two sequential analysis phases:
    - Management quality (experience, strategic decisions, execution)
    - Risk factors (debt burden, supplier dependence, regulatory risks)
    - Institutional ownership (major fund shareholders)
-5. **Structured Output**: Companies returned with detailed analysis, comparison tables, and 2-5 year scenario planning (optimistic, base, pessimistic)
+5. **Structured Output**: Companies returned with concise investment thesis (50 words) that synthesizes all analysis criteria including detailed financials, innovation assessment, management evaluation, risk factors, institutional ownership, scenario planning (optimistic/base/pessimistic), and valuation multiples
 
 ## Setup Instructions
 
@@ -59,9 +59,9 @@ The workflow consists of two sequential analysis phases:
 3. Phase 2 (Company Analysis) will automatically start with sector results
 4. Review the final structured output containing:
    - 5 analyzed sectors with detailed criteria assessment
-   - Up to 15 companies (top 3 per sector) with comprehensive metrics
-   - Comparative analysis and sector winners
-   - Scenario planning for 2-5 year investment horizon
+   - Up to 15 companies (top 3 per sector) with concise investment thesis (50 words each)
+   - Each investment thesis includes: financials, innovation, management, risks, scenarios, and valuation
+   - Sector winner analysis with comparative rationale (50 words per sector)
 
 ## Output Structure
 
@@ -86,20 +86,9 @@ The workflow consists of two sequential analysis phases:
     "rank": 1,
     "company_name": "Company name",
     "ticker": "TICK",
-    "financial_metrics": {...},
-    "innovation_score": {...},
-    "management_quality": "Assessment",
-    "risk_factors": "Key risks",
-    "institutional_ownership": "Major investors",
-    "investment_thesis": "Why this company",
-    "scenarios": {
-      "optimistic": "Best case",
-      "base": "Expected case",
-      "pessimistic": "Worst case"
-    },
-    "valuation_multiples": "P/E, P/S, etc."
+    "investment_thesis": "Comprehensive analysis including financial metrics (revenue growth, FCF, debt), innovation indicators (R&D, patents), management quality, risk factors, institutional ownership, scenarios (optimistic/base/pessimistic), and valuation multiples. Limited to 50 words."
   }],
-  "sector_winner": "Best company and rationale"
+  "sector_winner": "Best company in the sector and rationale. Limited to 50 words."
 }]
 ```
 
