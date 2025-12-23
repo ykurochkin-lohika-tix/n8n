@@ -1,0 +1,541 @@
+{
+  "name": "simple_screener_flow_agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        112,
+        544
+      ],
+      "id": "ca19906c-e422-496e-8ffd-ba8af7a6d65b",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Today's date is {{ $now.format('yyyy-MM-dd') }}.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert analyst with in-depth knowledge of strategic management (using frameworks such as PESTLE, SWOT, Porter), geopolitics and international relations (analysis of techno-nationalism, sanctions policy, supply chains), and macroeconomics and market theory. You specialize in deconstructing and recombining frameworks for customized criteria, assessing the net effect of geopolitical risks (sanctions) and support (subsidies), and identifying sectors with \"economic rent\" (high demand + inelastic supply).\n\nYour task: Identify 5 potential U.S. sectors that meet the following criteria:\n\n1. Strategic importance:\n   - Fundamental importance for technological sovereignty, economic growth, and national security of the U.S.\n   - In focus of government policy and corporate strategies (de-risking, government support, investment programs)\n\n2. Demand and supply:\n   - Explosive and irreversible demand for sector's products or services\n   - Supply is inelastic with barriers to entry for new competitors\n\n3. Innovativeness and technological maturity:\n   - Identify the stage of development (emerging, growth, or maturity)\n   - Innovation indicators: patents, startups, R&D activity\n\n4. Geopolitical context:\n   - Provides strategic advantage for U.S. over other countries (China, EU)\n   - Important in global supply chains\n\n5. Risks and resilience:\n   - Key risks: dependence on raw materials, political risks, technological failures\n\nUse the web search tool to find the latest information about:\n- Current U.S. government policies and investment programs (CHIPS Act, IRA, etc.)\n- Recent geopolitical developments affecting sectors\n- Latest market trends and demand forecasts\n- Recent patent filings and R&D activities\n- Supply chain dynamics and constraints\n\nProvide detailed analysis for each sector explaining why it meets these criteria.\n\nImportant that response format must be = \"[{\n  \"sector_name\": \"Name of the sector\",\n  \"strategic_importance\": \"Detailed explanation of strategic importance\",\n  \"demand_supply_analysis\": \"Analysis of demand/supply dynamics and barriers to entry\",\n  \"innovation_stage\": \"Stage: emerging/growth/maturity with innovation indicators\",\n  \"geopolitical_context\": \"Strategic advantage and supply chain importance\",\n  \"risks_resilience\": \"Key risks and resilience factors\",\n  \"overall_score\": \"Rating from 1-10\"\n}]\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        464,
+        544
+      ],
+      "id": "c3894af7-1a94-42b0-9599-4bebbf5d5c72",
+      "name": "Sector Analysis Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        832
+      ],
+      "id": "18ac95c9-693c-406e-a9c1-2c469637072e",
+      "name": "Claude for Sector Agent",
+      "credentials": {
+        "anthropicApi": {
+          "id": "NasIdgbSm8kLTASn",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[{\n  \"sector_name\": \"Name of the sector\",\n  \"strategic_importance\": \"Detailed explanation of strategic importance\",\n  \"demand_supply_analysis\": \"Analysis of demand/supply dynamics and barriers to entry\",\n  \"innovation_stage\": \"Stage: emerging/growth/maturity with innovation indicators\",\n  \"geopolitical_context\": \"Strategic advantage and supply chain importance\",\n  \"risks_resilience\": \"Key risks and resilience factors\",\n  \"overall_score\": \"Rating from 1-10\"\n}]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        848
+      ],
+      "id": "3fcaeb10-09e0-4c95-8762-fa0bc914dc3a",
+      "name": "Sector Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Based on the sector analysis results:\n{{ JSON.stringify($json.output, null, 2) }}\n\nToday's date is {{ $now.format('yyyy-MM-dd') }}.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert in corporate finance (fundamental analysis, financial statements analysis - Income Statement, Balance Sheet, Cash Flow), valuation of intangible assets (R&D, patents, management quality assessment), and Equity Research practice (screening, financial modeling - DCF, Comps, stock pitch writing). You specialize in quality metrics (FCF over EPS), capital allocation assessment, and building clear comparative matrices for decision-making.\n\nYour task: For each of the identified sectors, find and rank the top 3 public U.S. companies (total up to 15 companies) that meet these criteria:\n\n1. Company selection:\n   - Public companies with the highest potential to become sector leaders, but which are currently outsiders or dark horses  \n   - Strong reasons and greatest chance to lead the sector\n\n2. Evaluation criteria:\n   - Financial metrics: revenue growth, free cash flow (FCF), moderate debt levels\n   - Innovativeness: technologies, R&D spending, patents, new products\n   - Management: experience, strategic decisions, execution capability\n   - Risks: debt burden, supplier dependence, regulatory risks\n   - Institutional investors: presence of large funds as shareholders (preferable)\n\n3. Comparison:\n   - Provide concise overview with comparison tables (multiples, growth rates, innovation metrics)\n   - For each sector, conclude which company is the best and why\n\n4. Time horizon and scenarios:\n   - Investment horizon: 2-5 years\n   - Scenario analysis for each company: optimistic, base, pessimistic\n\nUse the web search tool to find the latest information about:\n- Current stock prices and market caps\n- Recent quarterly earnings and financial metrics\n- Latest company announcements and product launches\n- Recent analyst reports and ratings\n- Current institutional ownership data\n- Recent news affecting the companies\n\nIMPORTANT: Each company 'investment_thesis' text must be not more than 200 words.\n\nProvide detailed analysis with all metrics and clear comparative data.\n\nResponce fromat = \"[{\n  \"sector\": \"Sector name\",\n  \"companies\": [{\n    \"rank\": 1,\n    \"company_name\": \"Company name\",\n    \"ticker\": \"Stock ticker symbol\",\n    \"investment_thesis\": \"Why this company will lead the sector.\"\n  }],\n  \"sector_winner\": \"Which company is best and why?\"\n}]\".\nUse the web search tool not more than 10 times.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1056,
+        544
+      ],
+      "id": "765df4ca-fe3b-45fe-aa3a-5282928a3635",
+      "name": "Company Analysis Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        816
+      ],
+      "id": "38b619d2-e1f6-4c63-976e-f02564884039",
+      "name": "Claude for Company Agent",
+      "credentials": {
+        "anthropicApi": {
+          "id": "NasIdgbSm8kLTASn",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[{\n  \"sector\": \"Sector name\",\n  \"companies\": [{\n    \"rank\": 1,\n    \"company_name\": \"Company name\",\n    \"ticker\": \"Stock ticker symbol\",\n    \"investment_thesis\": \"Why this company will lead the sector.\"\n  }],\n  \"sector_winner\": \"Which company is best and why?\"\n}]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        816
+      ],
+      "id": "6e6b25e4-0b9b-4518-82c1-b1fd7955bae3",
+      "name": "Company Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the output array from the input\nconst sectors = $input.first().json.output;\n\n// Array to store all messages\nconst messages = [];\n\n// Loop through sectors and companies\nsectors.forEach(sector => {\n  sector.companies.forEach(company => {  \n    let message;\n    \n    if(+company.rank === 1){\n      message = `📊 **${sector.sector}**\\n\\n${company.rank}. **${company.company_name}** (${company.ticker})\\n${company.investment_thesis}\\n\\n🏆 **Sector Winner:** ${sector.sector_winner}\\n\\n${'='.repeat(50)}`;\n    }\n    else{\n      message = `📊 **${sector.sector}**\\n\\n${company.rank}. **${company.company_name}** (${company.ticker})\\n${company.investment_thesis}\\n\\n${'='.repeat(50)}`;\n    }\n    \n    messages.push({\n      json: {\n        message: message,\n        sector: sector.sector,\n        company: company.company_name,\n        ticker: company.ticker,\n        rank: company.rank\n      }\n    });\n  });\n});\n\n// Return array of items\nreturn messages;"
+      },
+      "id": "767b880d-23cd-48ab-bcbc-a4053b2d2acc",
+      "name": "Split into Companies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "267757685",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        448
+      ],
+      "id": "5c55bda5-d18a-468d-ba17-aff5d3633468",
+      "name": "Bot channel text message",
+      "webhookId": "bc24d445-09e1-4087-af48-1bc0ec049d21",
+      "credentials": {
+        "telegramApi": {
+          "id": "psnluVYsrR2l2vsI",
+          "name": "Yurii_Bot"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "-5071543046",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        768
+      ],
+      "id": "7a0b2191-3b7c-483e-82bc-2f5c197e267d",
+      "name": "Private channel text message",
+      "webhookId": "5188fe9a-3498-49e6-9dc3-278addd63ee6",
+      "credentials": {
+        "telegramApi": {
+          "id": "BEXAQ7r0HnlzPoFP",
+          "name": "NIKITA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        800
+      ],
+      "id": "3c5a6ab7-6b5f-4c65-84a4-c6081bd12dd6",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "M3DwdlpTjPUzi8dK",
+          "name": "SerpAPI account"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "pinData": {
+    "Sector Analysis Agent": [
+      {
+        "json": {
+          "output": [
+            {
+              "sector_name": "Advanced Semiconductors and Chip Manufacturing",
+              "strategic_importance": "Semiconductors represent the foundational technology for AI, defense systems, quantum computing, and all modern electronics. The CHIPS and Science Act (2022) allocated $52.7 billion for semiconductor manufacturing and R&D, with major investments from Intel ($20B in Ohio), TSMC ($40B in Arizona), and Samsung ($17B in Texas). This sector is critical for technological sovereignty as chips power everything from F-35 fighters to data centers. The U.S. currently produces only 12% of global chips but consumes 50%, making domestic production a national security imperative. The sector directly supports defense industrial base, AI leadership, and economic competitiveness against China's semiconductor ambitions.",
+              "demand_supply_analysis": "Demand is explosive and structural: AI chip demand growing at 30-40% CAGR through 2030, automotive chips (EVs require 2-3x more semiconductors), IoT devices, and data centers. Global semiconductor market projected to reach $1 trillion by 2030. Supply is highly inelastic with extreme barriers to entry: (1) Capital intensity - advanced fabs cost $15-20 billion and take 3-5 years to build; (2) Technical complexity - only 3 companies globally can produce sub-5nm chips (TSMC, Samsung, Intel); (3) Equipment monopolies - ASML holds monopoly on EUV lithography machines; (4) Talent scarcity - requires specialized engineers with years of training. Lead times for advanced chips are 6-12 months. This creates massive economic rent potential as demand far exceeds constrained supply.",
+              "innovation_stage": "Stage: Growth transitioning to maturity for current nodes, but emerging for next-generation technologies. Innovation indicators are exceptional: (1) U.S. leads in chip design with 46% of global semiconductor patents (2023-2024); (2) Major R&D push in chiplets, 3D packaging, gate-all-around transistors, and photonics; (3) Startups like Cerebras, Groq, and SambaNova innovating in AI-specific chips; (4) Government funding $11 billion for R&D through NSTC (National Semiconductor Technology Center); (5) University partnerships with MIT, Stanford, and Purdue establishing advanced packaging research centers. Patent filings in advanced packaging up 25% year-over-year. The sector shows continuous innovation cycles every 18-24 months (Moore's Law evolution).",
+              "geopolitical_context": "Semiconductors are the epicenter of U.S.-China tech competition. U.S. export controls (October 2022, updated 2023-2024) restrict China's access to advanced chips below 14nm and chipmaking equipment, creating strategic advantage. Taiwan's TSMC produces 90% of advanced chips, making Taiwan a geopolitical flashpoint - U.S. diversification to domestic production reduces this vulnerability. The sector provides leverage in alliances through Chip 4 alliance (U.S., Japan, South Korea, Taiwan) to coordinate supply chains and exclude China. Control of semiconductor supply chains gives U.S. power over global tech ecosystem - every smartphone, AI system, and military platform depends on chips. EU and China investing heavily ($43B and $150B respectively) but U.S. maintains design leadership and is rebuilding manufacturing capacity.",
+              "risks_resilience": "Key risks: (1) Raw material dependencies - neon gas (90% from Ukraine/Russia), rare earths for processing (China controls 70%); (2) Talent shortage - U.S. needs 90,000 additional semiconductor workers by 2030; (3) Geopolitical risk - Taiwan conflict could disrupt 90% of advanced chip supply; (4) Technology risk - quantum computing could disrupt current architectures; (5) Cost overruns - Intel's Ohio fab delayed, costs rising. Resilience factors: (1) Massive government support through CHIPS Act with 25% investment tax credit; (2) Diversified supply chain development with Japan, South Korea partnerships; (3) Onshoring of packaging and testing facilities; (4) Strategic stockpiling programs; (5) Workforce development initiatives with $200M for training; (6) Strong IP protection and design leadership that China cannot easily replicate.",
+              "overall_score": "9.5/10"
+            },
+            {
+              "sector_name": "Artificial Intelligence Infrastructure and Computing",
+              "strategic_importance": "AI infrastructure is the backbone of the next industrial revolution and military superiority. The sector encompasses data centers, AI chips, cloud computing, and foundational AI models. U.S. leads globally with companies like NVIDIA (80% AI chip market share), Microsoft, Google, Amazon, and OpenAI. The Biden Administration's October 2023 Executive Order on AI and proposed AI infrastructure investments position this as critical for maintaining technological hegemony. AI determines future economic productivity (projected $15.7 trillion contribution to global GDP by 2030), military capabilities (autonomous systems, cyber defense), and societal transformation. China's AI ambitions make this a zero-sum competition for global AI leadership. The sector underpins competitiveness in every other industry from healthcare to finance to manufacturing.",
+              "demand_supply_analysis": "Demand is exponential and irreversible: Enterprise AI adoption growing 40% annually, generative AI market projected to reach $1.3 trillion by 2032, data center capacity needs doubling every 2 years. ChatGPT reached 100M users in 2 months - fastest technology adoption in history. Every Fortune 500 company now has AI transformation initiatives. Supply is severely constrained: (1) GPU shortage - NVIDIA H100 chips have 6-12 month wait times, selling for $30,000-40,000; (2) Data center capacity - power and cooling infrastructure can't keep pace; (3) Specialized talent - AI researchers command $500K-$1M+ compensation; (4) Training data quality and compute costs - GPT-4 training cost estimated $100M+; (5) Energy constraints - AI data centers require 10-50 MW each. Barriers to entry are extreme: capital requirements ($1B+ for competitive AI models), technical expertise, and network effects create winner-take-all dynamics. Economic rent is massive.",
+              "innovation_stage": "Stage: Emerging to early growth - rapid innovation with paradigm shifts occurring quarterly. Innovation indicators are off the charts: (1) U.S. leads with 60% of global AI patents and 70% of AI research citations; (2) Venture capital invested $25B+ in U.S. AI startups in 2024; (3) Breakthrough pace accelerating - GPT-4, Claude 3, Gemini, multimodal AI, AI agents all launched 2023-2024; (4) Open-source innovation with Meta's Llama, Mistral creating ecosystem; (5) Corporate R&D - Google, Microsoft, Amazon each spending $30B+ annually on AI; (6) University research - Stanford HAI, MIT CSAIL, Berkeley BAIR producing cutting-edge research; (7) Novel architectures - transformers, diffusion models, mixture-of-experts. Patent filings in AI/ML up 35% in 2024. The sector is pre-paradigm consolidation with massive innovation potential remaining.",
+              "geopolitical_context": "AI infrastructure provides decisive strategic advantage in the U.S.-China tech rivalry. U.S. export controls on AI chips (A100, H100) to China implemented October 2022 and expanded 2023-2024 limit China's ability to train frontier AI models. U.S. controls the full stack: chip design (NVIDIA, AMD), cloud infrastructure (AWS, Azure, Google Cloud hold 65% global market share), and foundational models (OpenAI, Anthropic, Google). This creates dependencies for allies and adversaries alike. AI determines military superiority - Project Maven, autonomous weapons, intelligence analysis. The sector is critical in global supply chains as AI optimizes logistics, manufacturing, and resource allocation. EU's AI Act and China's AI regulations create fragmented global landscape where U.S. standards could become default. Control of AI infrastructure equals control of 21st century economy and security architecture.",
+              "risks_resilience": "Key risks: (1) Energy dependency - AI data centers consume 1-2% of global electricity, growing to 3-4% by 2030, straining grid capacity; (2) Chip supply concentration - 80% dependence on NVIDIA creates single point of failure; (3) Talent war - China producing 3x more STEM graduates, brain drain risk; (4) Regulatory uncertainty - EU AI Act, U.S. state laws could fragment market; (5) Cybersecurity - AI models vulnerable to adversarial attacks, data poisoning; (6) Ethical risks - bias, misinformation, job displacement could trigger backlash. Resilience factors: (1) Massive private investment - $200B+ annually in AI infrastructure; (2) Government support - NSF AI research institutes, DOE supercomputing; (3) Ecosystem depth - unmatched concentration of talent, capital, and companies in Silicon Valley; (4) First-mover advantage - U.S. models set standards; (5) Energy innovation - nuclear SMRs, fusion for data centers; (6) Allied partnerships - U.S., UK, EU AI safety institutes coordinate; (7) Open-source movement creates redundancy and innovation.",
+              "overall_score": "9.3/10"
+            },
+            {
+              "sector_name": "Advanced Battery Technology and Energy Storage",
+              "strategic_importance": "Energy storage is the linchpin of the clean energy transition, electric vehicle revolution, and grid modernization. The Inflation Reduction Act (2022) provides $369 billion for clean energy, with significant portions for battery manufacturing and EV incentives. Batteries are strategic for: (1) Transportation electrification - EVs projected to be 50% of new car sales by 2030; (2) Grid stability - renewable energy requires storage to manage intermittency; (3) National security - military moving to hybrid-electric vehicles and microgrids; (4) Economic competitiveness - battery manufacturing creates high-value jobs. Currently, China dominates with 75% of global battery production and 60% of component manufacturing. U.S. domestic battery production is national priority to reduce China dependency and capture $400B+ annual market by 2030. The sector enables energy independence and climate goals simultaneously.",
+              "demand_supply_analysis": "Demand is explosive and policy-driven: Global battery demand projected to grow 25-30% CAGR, reaching 4,500 GWh by 2030 (10x 2022 levels). Drivers include: (1) EV adoption - U.S. targeting 50% EV sales by 2030, requiring 1,000+ GWh annually; (2) Grid storage - utility-scale storage needs growing 40% annually to support renewables; (3) Consumer electronics - continued growth in devices; (4) Industrial applications - forklifts, construction equipment electrifying. Supply is highly constrained: (1) Manufacturing capacity - U.S. has only 10% of global capacity, building out slowly; (2) Raw materials - lithium, cobalt, nickel supply chains controlled by China (processing) and geopolitically unstable regions (mining); (3) Gigafactory construction - takes 3-4 years and $2-5 billion per facility; (4) Technical expertise - battery chemistry and manufacturing know-how concentrated in Asia. Barriers to entry include capital intensity, economies of scale requirements, and supply chain integration. Economic rent potential is high as demand outstrips supply through 2030.",
+              "innovation_stage": "Stage: Growth phase with emerging next-generation technologies. Current lithium-ion technology is mature but continuously improving (energy density up 5-7% annually). Innovation indicators: (1) U.S. leads in next-gen battery patents - solid-state, lithium-metal, sodium-ion with 35% of global patents; (2) Startups like QuantumScape (solid-state), Sila Nanotechnologies (silicon anodes), Form Energy (iron-air) raising billions; (3) DOE funding $3 billion for battery R&D through Bipartisan Infrastructure Law; (4) Corporate R&D - GM, Ford, Tesla investing heavily in battery technology; (5) National labs (Argonne, NREL, Oak Ridge) advancing battery science; (6) Manufacturing innovation - dry electrode coating, cell-to-pack designs reducing costs 20-30%; (7) Recycling technology emerging as critical - Redwood Materials, Li-Cycle scaling. Patent filings in battery technology up 30% in 2023-2024. The sector shows parallel innovation in chemistry, manufacturing, and recycling.",
+              "geopolitical_context": "Batteries are central to U.S.-China economic competition and energy security. China's dominance in battery supply chain (75% of production, 60% of components, 80% of rare earth processing) creates strategic vulnerability. U.S. response includes: (1) IRA tax credits requiring North American content, excluding Chinese companies; (2) Defense Production Act invoked for critical minerals; (3) Partnerships with Australia (lithium), Canada (nickel), Chile (lithium) to diversify supply; (4) Friendshoring strategy with allies; (5) Export controls on battery technology to China. Control of battery supply chain determines: EV industry competitiveness ($400B market), grid modernization success, and military capabilities. EU investing €3.2B in battery production, creating competition for U.S. China's BYD and CATL are global leaders, but U.S. aims to capture domestic market and high-end technology. The sector is critical for reducing fossil fuel dependency and achieving climate commitments, which have geopolitical implications for oil-producing nations.",
+              "risks_resilience": "Key risks: (1) Critical mineral dependency - lithium (Chile, Australia, China), cobalt (DRC - 70% of supply, human rights concerns), nickel (Indonesia, Russia); (2) China supply chain dominance - 80% of battery components processed in China; (3) Technology risk - solid-state batteries could disrupt current investments; (4) Environmental concerns - mining impacts, recycling challenges; (5) Cost competitiveness - Chinese batteries 20-30% cheaper due to scale; (6) Geopolitical instability in mining regions. Resilience factors: (1) Massive government support - $135B in IRA incentives for batteries and EVs; (2) Domestic mining expansion - Lithium Americas, Piedmont Lithium developing U.S. deposits; (3) Recycling infrastructure - could supply 25% of materials by 2035; (4) Technology diversification - LFP, sodium-ion, solid-state reducing specific material dependencies; (5) Allied partnerships for supply chain; (6) Manufacturing scale-up - 25+ gigafactories announced in U.S. totaling 1,000+ GWh capacity by 2030; (7) Strong IP position in next-gen technologies.",
+              "overall_score": "8.7/10"
+            },
+            {
+              "sector_name": "Quantum Computing and Quantum Technologies",
+              "strategic_importance": "Quantum computing represents the next paradigm shift in computation with implications for cryptography, drug discovery, materials science, financial modeling, and national security. The sector is strategic because: (1) Cryptographic implications - quantum computers will break current encryption (RSA, ECC), requiring quantum-resistant cryptography; (2) Military advantage - optimization for logistics, simulation for weapons design, breaking adversary communications; (3) Economic competitiveness - quantum advantage in drug discovery could save billions and years in development; (4) Scientific leadership - quantum sensors, quantum networks enable new capabilities. U.S. National Quantum Initiative Act (2018) authorized $1.2 billion over 5 years, expanded in 2023. The race for quantum supremacy is between U.S., China, and EU, with winner potentially gaining decisive advantage in multiple domains. China claims significant progress, making U.S. leadership critical for maintaining technological edge.",
+              "demand_supply_analysis": "Demand is emerging but accelerating: Quantum computing market projected to reach $125 billion by 2030 (from $10B in 2024), growing at 30% CAGR. Early adopters include: (1) Pharmaceuticals - Merck, Roche, Pfizer investing in quantum for drug discovery; (2) Finance - JPMorgan, Goldman Sachs exploring quantum for portfolio optimization and risk analysis; (3) Chemicals - BASF, Dow for materials simulation; (4) Government - NSA, DOE, intelligence agencies for cryptography and simulation; (5) Logistics - quantum optimization for supply chains. Demand is currently constrained by technology maturity but will explode once quantum advantage is demonstrated for practical problems (estimated 2026-2028). Supply is extremely inelastic: (1) Only ~10 companies globally building quantum computers (IBM, Google, IonQ, Rigetti, Atom Computing in U.S.); (2) Requires PhD-level physicists and engineers - talent pool of few thousand globally; (3) Specialized infrastructure - dilution refrigerators, ultra-high vacuum systems, laser systems costing millions; (4) Different modalities (superconducting, trapped ion, photonic, neutral atom) with unclear winner; (5) Error correction remains unsolved - requires 1000+ physical qubits per logical qubit. Barriers to entry are extreme: deep technical expertise, capital intensity ($100M+ to build quantum computer), and long development cycles (5-10 years). Economic rent potential is massive once practical quantum advantage achieved.",
+              "innovation_stage": "Stage: Emerging - pre-commercial with rapid innovation. The sector is in NISQ (Noisy Intermediate-Scale Quantum) era, approaching fault-tolerant quantum computing. Innovation indicators: (1) U.S. leads in quantum patents with 40% global share; (2) Venture capital invested $2.5B+ in quantum startups 2023-2024; (3) Breakthrough pace - IBM's 1,121-qubit Condor (2023), Atom Computing's 1,180-qubit system (2024), Google's Willow chip achieving error correction milestone (December 2024); (4) Quantum algorithms advancing - Shor's, Grover's, VQE, QAOA for optimization; (5) Academic research - MIT, Caltech, Harvard, Yale leading in quantum science; (6) National labs - Argonne, Oak Ridge, Fermilab operating quantum networks; (7) Quantum software ecosystem emerging - Qiskit, Cirq, Q# programming languages; (8) Quantum networking - Chicago Quantum Exchange, quantum internet prototypes. Patent filings in quantum technologies up 40% in 2024. The sector shows exponential progress in qubit count, coherence times, and gate fidelities.",
+              "geopolitical_context": "Quantum technologies are critical in U.S.-China strategic competition. China has invested heavily ($15B+ government funding) and claims quantum communication satellite (Micius), quantum networks, and progress in quantum computing. U.S. advantages: (1) Leading quantum companies - IBM, Google, Microsoft, Amazon (Braket), IonQ are global leaders; (2) University research excellence - U.S. universities produce majority of quantum research; (3) Talent concentration - top quantum scientists predominantly in U.S.; (4) Ecosystem depth - startups, venture capital, corporate R&D create innovation flywheel; (5) Allied partnerships - U.S.-UK-Australia quantum collaboration. Export controls implemented 2023-2024 restrict quantum technology transfer to China. The sector provides strategic advantage through: (1) Cryptographic superiority - quantum-resistant algorithms and potential to break adversary encryption; (2) Simulation capabilities for materials, drugs, weapons; (3) Quantum sensing for submarines, navigation; (4) Standard-setting for quantum communications. EU investing €1B in quantum flagship program. Winner of quantum race gains significant intelligence, military, and economic advantages.",
+              "risks_resilience": "Key risks: (1) Technology uncertainty - unclear which qubit modality will win (superconducting vs. trapped ion vs. photonic vs. neutral atom); (2) Timeline risk - practical quantum advantage may take longer than expected (2030s vs. 2020s); (3) Talent shortage - only few thousand quantum experts globally, intense competition; (4) Cryptographic threat - 'harvest now, decrypt later' attacks where adversaries store encrypted data to decrypt with future quantum computers; (5) China competition - potential for China to achieve quantum breakthrough first; (6) Investment risk - billions invested with uncertain commercial returns; (7) Standardization - lack of standards for quantum hardware and software. Resilience factors: (1) Strong government support - National Quantum Initiative, DOE quantum centers, NSF funding; (2) Private investment - IBM, Google, Microsoft, Amazon committed long-term; (3) Diverse approaches - multiple qubit technologies being pursued reduces single-point failure; (4) Post-quantum cryptography - NIST standardizing quantum-resistant algorithms (2024); (5) Talent pipeline - quantum engineering programs at universities expanding; (6) Allied collaboration - sharing research and coordinating on standards; (7) Dual-use applications - quantum sensors and communications provide near-term value while quantum computing matures.",
+              "overall_score": "8.4/10"
+            },
+            {
+              "sector_name": "Biotechnology and Synthetic Biology",
+              "strategic_importance": "Biotechnology and synthetic biology represent the convergence of biology, engineering, and computation to design and manufacture biological systems. Strategic importance includes: (1) Healthcare sovereignty - mRNA vaccines, gene therapies, personalized medicine reduce dependency on foreign pharmaceutical supply chains; (2) Biodefense - rapid response to pandemics, bioterrorism threats, emerging infectious diseases; (3) Biomanufacturing - sustainable production of chemicals, materials, fuels replacing petroleum-based products; (4) Food security - precision fermentation, cellular agriculture, crop engineering; (5) Economic competitiveness - U.S. biotech industry generates $2.9 trillion in economic output. COVID-19 demonstrated strategic value of domestic biotech capacity - mRNA vaccines developed and manufactured in U.S. gave decisive advantage. BIOSECURE Act (proposed 2024) aims to reduce reliance on Chinese biotech companies. The sector is critical for health security, environmental sustainability, and maintaining U.S. leadership in life sciences.",
+              "demand_supply_analysis": "Demand is explosive across multiple verticals: (1) Therapeutics - gene therapy market growing 35% CAGR to $40B by 2030, cell therapy $20B by 2030, mRNA therapeutics expanding beyond vaccines; (2) Biomanufacturing - sustainable chemicals market reaching $500B by 2030; (3) Precision fermentation - alternative proteins market $290B by 2035; (4) Agricultural biotech - CRISPR-edited crops, biologics for pest control; (5) Biodefense - government spending on pandemic preparedness increasing post-COVID. Demand drivers include aging populations, chronic disease burden, climate change requiring sustainable alternatives, and biosecurity threats. Supply is constrained by: (1) Specialized biomanufacturing capacity - limited CDMO capacity for cell and gene therapies; (2) Talent - requires interdisciplinary expertise in biology, engineering, computation; (3) Regulatory pathways - FDA approval takes 10-15 years and $1-2B for new drugs; (4) R&D intensity - high failure rates (90% of drug candidates fail); (5) Capital requirements - biotech startups require $100M+ to reach clinical trials. Barriers to entry include regulatory complexity, technical expertise, and economies of scale in manufacturing. Economic rent is significant in successful therapeutics (blockbuster drugs generate billions annually) and platform technologies.",
+              "innovation_stage": "Stage: Growth phase with emerging breakthrough technologies. Innovation indicators are exceptional: (1) U.S. dominates biotech patents with 50% global share; (2) Venture capital invested $30B+ in U.S. biotech in 2024; (3) CRISPR gene editing revolutionizing medicine - first CRISPR therapy approved 2023 (Casgevy for sickle cell); (4) AI-driven drug discovery - companies like Recursion, Insitro, Generate Biomedicines using AI to design molecules; (5) mRNA platform expanding - cancer vaccines, rare disease treatments in trials; (6) Base editing and prime editing - next-generation gene editing with higher precision; (7) Synthetic biology - companies like Ginkgo Bioworks, Zymergen engineering organisms for biomanufacturing; (8) Organoids and organ-on-chip - reducing animal testing, accelerating drug development; (9) Microbiome therapeutics - gut-brain axis, metabolic diseases; (10) Academic excellence - MIT, Stanford, Harvard, UCSF leading biotech research. Patent filings in biotech up 25% in 2024. FDA approved record 55 novel drugs in 2023. The sector shows continuous paradigm shifts with CRISPR, AI, and synthetic biology creating new possibilities.",
+              "geopolitical_context": "Biotechnology provides strategic advantage in health security, economic competitiveness, and sustainability. U.S. leads globally with: (1) Pharmaceutical innovation - U.S. companies develop 50% of new drugs globally; (2) Biotech ecosystem - Boston, San Francisco, San Diego clusters unmatched globally; (3) Regulatory leadership - FDA approvals set global standards; (4) Capital markets - U.S. biotech IPOs and venture funding dwarf other regions. Geopolitical dynamics: (1) China competition - China investing heavily in biotech, BGI Genomics raises data security concerns, BIOSECURE Act aims to restrict Chinese biotech companies from U.S. government contracts; (2) Supply chain vulnerabilities - COVID exposed dependence on China/India for APIs (80% of pharmaceutical ingredients), driving reshoring; (3) Vaccine diplomacy - mRNA vaccines gave U.S. soft power advantage; (4) Dual-use concerns - synthetic biology could be weaponized, requiring biosecurity measures; (5) Data sovereignty - genomic data has national security implications. EU investing €94B in health research, but U.S. maintains leadership. The sector is critical for pandemic preparedness, reducing pharmaceutical dependencies, and maintaining scientific leadership.",
+              "risks_resilience": "Key risks: (1) Supply chain concentration - 80% of API production in China/India creates vulnerability; (2) Regulatory risk - FDA approval timelines and costs limit innovation; (3) Biosecurity threats - engineered pathogens, gain-of-function research risks; (4) Ethical concerns - gene editing, synthetic biology raise societal questions; (5) China competition - talent recruitment (Thousand Talents), IP theft, subsidized competition; (6) Reimbursement pressure - drug pricing debates threaten profitability; (7) Technical failures - gene therapy deaths (2024 incidents) create setbacks; (8) Talent shortage - computational biologists, bioinformaticians in high demand. Resilience factors: (1) Strong government support - NIH budget $47B annually, BARDA for biodefense, ARPA-H for health innovation; (2) Reshoring initiatives - CHIPS-like proposals for pharmaceutical manufacturing; (3) Ecosystem depth - unmatched concentration of universities, companies, capital, and talent; (4) IP protection - strong patent system protects innovation; (5) Regulatory expertise - FDA gold standard globally; (6) Platform technologies - mRNA, CRISPR, AI-drug discovery create multiple shots on goal; (7) Allied partnerships - U.S.-EU-Japan collaboration on standards and pandemic preparedness; (8) Private capital - biotech attracts massive venture and public market investment despite risks.",
+              "overall_score": "8.9/10"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Company Analysis Agent": [
+      {
+        "json": {
+          "output": [
+            {
+              "sector": "Advanced Semiconductors and Chip Manufacturing",
+              "companies": [
+                {
+                  "rank": 1,
+                  "company_name": "Marvell Technology",
+                  "ticker": "MRVL",
+                  "investment_thesis": "Marvell is positioned to become a semiconductor leader through its strategic focus on data infrastructure, custom AI chips, and optical connectivity. With 2186 institutional owners and strong positioning in AI accelerators, data center networking, and automotive chips, Marvell offers diversified exposure beyond GPU dominance. Revenue growth of 18% YoY in data center segment, with custom AI silicon for hyperscalers (Google, Microsoft, Amazon) providing sticky, high-margin revenue. The company's optical DSP technology is critical for 800G/1.6T data center connectivity, creating a moat. Management's strategic pivot from legacy businesses to AI infrastructure shows strong execution. Free cash flow margins improving to 25%+, with moderate debt-to-equity of 0.3. R&D spending at 35% of revenue demonstrates innovation commitment. Risks include customer concentration and competition from Broadcom. Institutional ownership at 85% with Vanguard, BlackRock as major holders validates quality. 2-5 year outlook: Optimistic scenario (AI infrastructure boom) - 30% CAGR; Base case - 18% CAGR; Pessimistic (slowdown) - 8% CAGR."
+                },
+                {
+                  "rank": 2,
+                  "company_name": "Lattice Semiconductor",
+                  "ticker": "LSCC",
+                  "investment_thesis": "Lattice is a dark horse in low-power FPGAs with applications in AI edge computing, automotive ADAS, and industrial automation. The company's Nexus and CertusPro-NX platforms offer power efficiency advantages critical for edge AI deployment. With 60%+ gross margins and improving operating leverage, Lattice demonstrates strong unit economics. The shift to 28nm and below processes positions the company for next-generation applications. Management has successfully transitioned from commodity FPGAs to high-value solutions, with design wins in automotive (Tier 1 suppliers) and communications infrastructure. Revenue growth of 12-15% annually with operating margins expanding to 30%+. Debt-free balance sheet provides financial flexibility. R&D at 20% of revenue focuses on AI acceleration at the edge and security solutions. Key risks include cyclical semiconductor markets and competition from larger players. Institutional ownership at 95% with T. Rowe Price and Wellington significant holders. Outlook: Optimistic - 25% CAGR (edge AI explosion); Base - 15% CAGR; Pessimistic - 5% CAGR."
+                },
+                {
+                  "rank": 3,
+                  "company_name": "Ambarella",
+                  "ticker": "AMBA",
+                  "investment_thesis": "Ambarella specializes in AI vision processors for automotive, IoT, and security cameras, positioning it for autonomous vehicle and smart city growth. The company's CV3 AI domain controller delivers 200+ TOPS performance for ADAS Level 2+ to Level 4 autonomy. With design wins at major automotive OEMs and Tier 1s, Ambarella has multi-year revenue visibility. The pivot from consumer cameras to automotive/IoT shows strategic foresight. Gross margins of 60%+ reflect IP strength and differentiated technology. The company is cash-rich with no debt, providing runway for R&D investment (30% of revenue). Management's expertise in computer vision and edge AI processing creates competitive moat. Key risks include automotive market cyclicality, long design-in cycles, and competition from NVIDIA and Qualcomm. Recent partnerships with automotive leaders validate technology leadership. Institutional ownership at 80% with ARK Invest and Baillie Gifford as believers. Outlook: Optimistic (autonomous vehicle acceleration) - 35% CAGR; Base - 20% CAGR; Pessimistic (automotive slowdown) - 5% CAGR."
+                }
+              ],
+              "sector_winner": "Marvell Technology (MRVL) is the best positioned to lead. Its diversified exposure across custom AI chips, optical connectivity, and data center infrastructure provides multiple growth vectors with lower single-point risk than competitors. The company's relationships with hyperscalers create sticky revenue streams, while strong institutional backing (2186 owners, 85% ownership) and improving FCF generation (25%+ margins) demonstrate financial quality. Marvell's strategic execution in pivoting to AI infrastructure ahead of competitors, combined with moderate leverage and robust R&D investment, positions it to capture disproportionate share of the $1 trillion semiconductor market by 2030."
+            },
+            {
+              "sector": "Artificial Intelligence Infrastructure and Computing",
+              "companies": [
+                {
+                  "rank": 1,
+                  "company_name": "Vertiv Holdings",
+                  "ticker": "VRT",
+                  "investment_thesis": "Vertiv is the critical infrastructure backbone for AI data centers, providing thermal management, power distribution, and monitoring systems. As AI workloads generate 3-5x more heat than traditional computing, Vertiv's liquid cooling solutions are essential for high-density GPU clusters. The company reported 20%+ organic growth in 2024 with record backlog exceeding $7 billion, providing multi-year revenue visibility. Operating margins expanding from 12% to 16%+ demonstrate operational leverage. Vertiv's integrated solutions (cooling, power, monitoring) create customer stickiness and higher switching costs. Management has successfully transformed from legacy UPS business to AI infrastructure leader. Free cash flow conversion improving to 80%+ of net income. Debt-to-EBITDA reduced to 2.5x, showing disciplined capital allocation. R&D focused on next-gen liquid cooling and AI-optimized infrastructure. Risks include supply chain constraints and competition from Schneider Electric. Institutional ownership at 95% with Vanguard, BlackRock, and Fidelity as major holders. Outlook: Optimistic (AI boom) - 28% CAGR; Base - 18% CAGR; Pessimistic - 10% CAGR."
+                },
+                {
+                  "rank": 2,
+                  "company_name": "Arista Networks",
+                  "ticker": "ANET",
+                  "investment_thesis": "Arista dominates AI data center networking with 400G/800G Ethernet switches critical for GPU-to-GPU communication in AI training clusters. The company's CloudVision platform provides AI-driven network automation and observability. Revenue growth of 35%+ in 2024 driven by hyperscaler AI infrastructure buildouts. Gross margins of 60%+ and operating margins of 40%+ reflect superior business model and pricing power. Arista's customer concentration with Meta, Microsoft, and Oracle provides scale but also risk. The company's software-driven approach and EOS operating system create network effects and customer lock-in. Strong balance sheet with $5+ billion cash and zero debt enables strategic investments. R&D at 15% of revenue focuses on 1.6T Ethernet and AI networking optimization. Management team (Jayshree Ullal) has exceptional track record of execution and market share gains from Cisco. Free cash flow generation of $3+ billion annually supports shareholder returns. Risks include customer concentration and potential hyperscaler slowdown. Institutional ownership at 80%. Outlook: Optimistic - 30% CAGR; Base - 22% CAGR; Pessimistic - 12% CAGR."
+                },
+                {
+                  "rank": 3,
+                  "company_name": "Super Micro Computer",
+                  "ticker": "SMCI",
+                  "investment_thesis": "Super Micro is the leading provider of AI-optimized servers and liquid-cooled rack solutions for GPU clusters. The company's building block approach enables rapid customization for hyperscalers and enterprises deploying AI infrastructure. Revenue exploded 200%+ in fiscal 2024 to $14+ billion, driven by NVIDIA GPU server demand. Gross margins of 15-17% are lower than peers but improving with liquid cooling attach rates. Super Micro's direct liquid cooling (DLC) solutions reduce data center energy consumption by 40%, critical for sustainability. The company's time-to-market advantage (6-12 months faster than Dell/HPE) captures early AI deployment cycles. Recent accounting concerns and Nasdaq delisting risk create opportunity for contrarian investors if resolved. Management's focus on green computing and total cost of ownership resonates with customers. Institutional ownership declined but stabilizing. Key risks include accounting governance, supply chain dependencies on NVIDIA, and competition. Outlook: Optimistic (governance resolved, AI continues) - 40% CAGR; Base - 20% CAGR; Pessimistic (continued issues) - negative returns possible."
+                }
+              ],
+              "sector_winner": "Vertiv Holdings (VRT) emerges as the sector winner due to its mission-critical role in AI infrastructure with superior financial metrics and lower risk profile. While Arista has higher margins, Vertiv's $7 billion backlog provides unmatched revenue visibility, and its thermal management solutions are non-negotiable for high-density AI computing. The company's margin expansion trajectory (12% to 16%+), strong FCF conversion (80%+), and improving leverage (2.5x debt-to-EBITDA) demonstrate operational excellence. Vertiv benefits from diversified customer base across hyperscalers, enterprises, and edge computing, reducing concentration risk versus Arista. The secular trend toward liquid cooling for AI workloads positions Vertiv as the infrastructure arms dealer for the AI revolution, with less technology risk than server manufacturers like Super Micro."
+            },
+            {
+              "sector": "Advanced Battery Technology and Energy Storage",
+              "companies": [
+                {
+                  "rank": 1,
+                  "company_name": "Albemarle Corporation",
+                  "ticker": "ALB",
+                  "investment_thesis": "Albemarle is the world's largest lithium producer, controlling critical upstream supply for battery manufacturing. Despite 2024 lithium price weakness (down 70% from peaks), the company's low-cost production assets in Chile (Atacama), Australia (Greenbush), and U.S. (Kings Mountain restart) position it for margin expansion when prices recover. Albemarle's integrated conversion capacity (lithium carbonate and hydroxide) captures more value chain economics. The company generates strong free cash flow even at depressed prices, demonstrating cost leadership. Strategic investments in lithium hydroxide capacity for high-nickel batteries align with EV industry needs. Management's capital discipline during downturn (cutting capex, maintaining dividend) shows maturity. Debt-to-EBITDA elevated at 3.5x but manageable with asset sales and cash generation. R&D focused on direct lithium extraction (DLE) technology for sustainable production. Institutional ownership at 90% with Vanguard and State Street as anchors. Risks include lithium price volatility, Chinese competition, and demand uncertainty. Outlook: Optimistic (EV adoption accelerates, prices recover) - 25% CAGR; Base - 12% CAGR; Pessimistic (oversupply continues) - flat to negative."
+                },
+                {
+                  "rank": 2,
+                  "company_name": "QuantumScape",
+                  "ticker": "QS",
+                  "investment_thesis": "QuantumScape is developing solid-state lithium-metal batteries with potential to revolutionize EV performance: 80% charge in 15 minutes, 50% more range, and improved safety versus lithium-ion. The company achieved critical milestone in 2024 with 24-layer cells demonstrating 1,000+ charge cycles, validating technology scalability. Partnership with Volkswagen (20% owner) provides commercialization pathway and validation. PowerCo (VW battery unit) joint venture announced for manufacturing scale-up targeting 2025-2026 production. QuantumScape's separator technology is the key IP, with 300+ patents creating moat. The company has $1+ billion cash runway through 2027, eliminating near-term financing risk. Management team combines battery science expertise (Jagdeep Singh, CEO) with manufacturing experience. Key risks are technology commercialization (moving from lab to gigafactory scale), competition from Toyota and others in solid-state, and execution timeline slippage. No revenue currently, making this highest risk/reward profile. Institutional ownership at 45% with VW, KPCB, and Fidelity as believers. Outlook: Optimistic (successful commercialization by 2026) - 10x potential; Base (2027-2028 production) - 3-5x; Pessimistic (technology fails to scale) - 80% downside."
+                },
+                {
+                  "rank": 3,
+                  "company_name": "Livent Corporation",
+                  "ticker": "LTHM",
+                  "investment_thesis": "Livent (now merged with Allkem to form Arcadium Lithium, but analyzing pre-merger entity) specializes in high-purity lithium hydroxide for EV batteries, with technical expertise in lithium chemistry. The company's Argentina operations (Hombre Muerto) produce battery-grade lithium with low impurities critical for high-nickel cathodes. Livent's customer relationships with BMW, Tesla, and major cathode manufacturers provide revenue stability. The merger with Allkem creates third-largest lithium producer with diversified asset base and cost synergies. Livent's focus on sustainability (lowest carbon footprint in industry) aligns with OEM requirements and IRA incentives. The company's technical service model (working with customers on battery chemistry optimization) creates differentiation versus commodity producers. Balance sheet strengthened post-merger with scale advantages. R&D investment in lithium metal production for next-gen batteries shows forward thinking. Risks include lithium price exposure, merger integration challenges, and Argentine political risk. Institutional ownership strong with T. Rowe Price and BlackRock. Outlook: Optimistic (premium for high-purity, prices recover) - 20% CAGR; Base - 10% CAGR; Pessimistic - 5% CAGR."
+                }
+              ],
+              "sector_winner": "Albemarle Corporation (ALB) is the sector winner despite current lithium price headwinds. As the largest, lowest-cost lithium producer with diversified geographic assets and integrated conversion capacity, Albemarle has structural advantages that will compound when the market rebalances (expected 2025-2026). The company's ability to generate positive FCF even at trough prices demonstrates operational resilience that smaller competitors lack. While QuantumScape offers higher upside potential, the technology risk and lack of current revenue make it unsuitable as sector leader. Albemarle's 90% institutional ownership, dividend sustainability, and strategic asset base (including U.S. Kings Mountain for IRA benefits) position it to capture disproportionate value as EV adoption drives lithium demand to 4,500 GWh by 2030. The company's scale enables R&D investment in DLE and sustainable production that smaller players cannot match."
+            },
+            {
+              "sector": "Quantum Computing and Quantum Technologies",
+              "companies": [
+                {
+                  "rank": 1,
+                  "company_name": "IonQ",
+                  "ticker": "IONQ",
+                  "investment_thesis": "IonQ leads in trapped-ion quantum computing with superior qubit quality (99.9% fidelity) and scalability potential. The company's algorithmic qubits (#AQ) metric demonstrates practical quantum advantage, reaching 35 AQ in 2024 with roadmap to 64+ AQ by 2025. Revenue growth of 94% CAGR projected through 2027 to $316 million, driven by government contracts (AFRL, ARPA-H) and commercial partnerships (Hyundai, Airbus). IonQ's quantum networking capabilities position it for quantum internet infrastructure. The company's partnerships with AWS, Azure, and Google Cloud provide distribution channels. Strong balance sheet with $400+ million cash provides runway through profitability. Management team combines quantum physics expertise (Chris Monroe, co-founder) with commercial execution (Peter Chapman, CEO). Recent $100 million contract wins validate technology leadership. R&D focused on barium qubits for improved performance and photonic interconnects for scaling. Key risks include technology uncertainty, competition from IBM and Google, and path to profitability (currently unprofitable). Institutional ownership at 40% with Fidelity, ARK Invest, and Vanguard. Outlook: Optimistic (quantum advantage by 2026) - 50%+ CAGR; Base - 30% CAGR; Pessimistic (technology delays) - 10% CAGR."
+                },
+                {
+                  "rank": 2,
+                  "company_name": "Rigetti Computing",
+                  "ticker": "RGTI",
+                  "investment_thesis": "Rigetti pursues superconducting quantum computing with full-stack approach (chips, systems, software). The company's 84-qubit Ankaa-2 system achieved breakthrough in error mitigation, demonstrating path to practical applications. Rigetti's fab ownership (Fab-1 in California) provides vertical integration and rapid iteration capability unique among pure-play quantum companies. Recent UK government contracts and partnerships with Riverlane for error correction expand revenue base. The company's focus on quantum-classical hybrid algorithms addresses near-term commercial applications in optimization and machine learning. Rigetti Quantum Cloud Services (QCS) provides revenue model similar to cloud computing. Balance sheet improved with recent financing but cash runway concerns remain (12-18 months). Management's pivot to government and defense contracts reduces commercial adoption risk. R&D focused on multi-chip quantum processors for scaling beyond single-chip limits. Key risks include cash burn rate, competition from better-funded players, and superconducting versus trapped-ion technology debate. Institutional ownership at 25% with Bessemer Venture Partners. Outlook: Optimistic (government contracts scale, technology breakthrough) - 40% CAGR; Base - 20% CAGR; Pessimistic (funding challenges) - significant dilution risk."
+                },
+                {
+                  "rank": 3,
+                  "company_name": "D-Wave Quantum",
+                  "ticker": "QBTS",
+                  "investment_thesis": "D-Wave specializes in quantum annealing for optimization problems, offering commercial quantum computing today versus gate-based systems still in development. The company's 5,000+ qubit Advantage system is deployed at customer sites (Mastercard, Volkswagen, Los Alamos National Lab) solving real-world optimization problems. D-Wave's hybrid solver service combines quantum and classical computing for practical applications. Revenue of $10+ million annually with growth from expanded commercial adoption and government contracts. The company's annealing approach is less sensitive to noise than gate-based quantum computing, enabling current commercial use. Recent partnerships in drug discovery, logistics optimization, and financial modeling demonstrate versatility. D-Wave's software stack (Ocean SDK, Leap cloud service) lowers barriers to quantum adoption. Balance sheet concerns with limited cash and ongoing losses require monitoring. Management's focus on time-to-value for customers differentiates from competitors focused on qubit count. Key risks include debate over quantum annealing versus gate-based supremacy, limited addressable market for optimization-only systems, and financing needs. Institutional ownership at 15%. Outlook: Optimistic (annealing proves valuable, adoption scales) - 35% CAGR; Base - 15% CAGR; Pessimistic (gate-based wins, annealing niche) - 5% CAGR."
+                }
+              ],
+              "sector_winner": "IonQ (IONQ) is the clear sector winner based on technology leadership, financial strength, and commercial traction. The company's trapped-ion approach offers superior qubit quality and scalability compared to superconducting alternatives, with 99.9% fidelity enabling practical quantum algorithms. IonQ's 94% projected revenue CAGR through 2027, driven by $100+ million government contract wins and commercial partnerships, demonstrates market validation. The $400+ million cash balance provides financial runway that competitors lack, eliminating near-term dilution risk. IonQ's distribution through major cloud platforms (AWS, Azure, Google Cloud) creates network effects and customer acquisition advantages. While D-Wave offers current commercial systems, quantum annealing's limited applicability versus gate-based quantum computing constrains long-term potential. IonQ's institutional backing (40% ownership including Fidelity and ARK) and management team combining scientific excellence with commercial execution position it as the quantum computing leader for the 2025-2030 timeframe."
+            },
+            {
+              "sector": "Biotechnology and Synthetic Biology",
+              "companies": [
+                {
+                  "rank": 1,
+                  "company_name": "CRISPR Therapeutics",
+                  "ticker": "CRSP",
+                  "investment_thesis": "CRISPR Therapeutics achieved historic milestone with Casgevy, the first CRISPR gene-editing therapy approved (December 2023) for sickle cell disease and beta-thalassemia. This validates CRISPR technology and creates revenue stream (peak sales estimated $2+ billion annually). The company's pipeline includes CTX110 (CD19 CAR-T for lymphoma) in Phase 1/2, CTX120 (BCMA CAR-T for multiple myeloma), and immuno-oncology programs. Partnership with Vertex Pharmaceuticals (50/50 split on Casgevy) provides commercialization expertise and capital efficiency. CRISPR's in vivo gene editing programs for cardiovascular and liver diseases represent next frontier with larger addressable markets. Strong balance sheet with $1.8+ billion cash provides runway through multiple clinical readouts. The company's intellectual property position in CRISPR/Cas9 (licensed from Emmanuelle Charpentier) is foundational. Management's focus on ex vivo and in vivo applications diversifies risk. Gross margins on Casgevy expected at 80%+ as manufacturing scales. Key risks include competition from Intellia and Beam, manufacturing complexity, and reimbursement challenges for $2+ million therapies. Institutional ownership at 60% with Bayer, ARK Invest, and Vanguard. Outlook: Optimistic (Casgevy blockbuster, pipeline success) - 30% CAGR; Base - 18% CAGR; Pessimistic (competition, reimbursement issues) - 8% CAGR."
+                },
+                {
+                  "rank": 2,
+                  "company_name": "Recursion Pharmaceuticals",
+                  "ticker": "RXRX",
+                  "investment_thesis": "Recursion pioneered AI-driven drug discovery using cellular imaging and machine learning to identify novel therapeutics. The company's platform has generated 50+ billion biological data points, creating proprietary dataset competitors cannot replicate. Partnerships with Roche/Genentech ($150 million upfront), Bayer ($50 million), and NVIDIA validate platform value. Recursion's pipeline includes 5 clinical-stage programs in oncology and rare diseases, with AI-discovered molecules showing promising early data. The acquisition of Cyclica and Valence adds chemistry and multiomics capabilities, creating end-to-end drug discovery platform. Recent partnership with NVIDIA for AI model training and BioNeMo platform integration positions Recursion at intersection of AI and biotech. The company's operating system approach (discovering multiple drugs from single platform) offers leverage versus traditional biotech. Cash position of $400+ million with partnership funding extends runway. Management team (Chris Gibson, CEO) combines biology and technology expertise. Key risks include clinical trial failures, AI hype versus reality, and cash burn rate. Platform has yet to produce approved drug. Institutional ownership at 50% with Baillie Gifford and ARK Invest. Outlook: Optimistic (platform proves out, multiple approvals) - 40% CAGR; Base - 20% CAGR; Pessimistic (clinical failures) - negative returns."
+                },
+                {
+                  "rank": 3,
+                  "company_name": "Beam Therapeutics",
+                  "ticker": "BEAM",
+                  "investment_thesis": "Beam Therapeutics leads in base editing, a next-generation gene editing technology offering precision beyond CRISPR/Cas9 by making single nucleotide changes without double-strand DNA breaks. This reduces off-target effects and expands treatable genetic diseases. The company's lead program BEAM-101 for sickle cell disease showed promising Phase 1/2 data with potential advantages over Casgevy (single infusion versus chemotherapy conditioning). Pipeline includes programs for alpha-1 antitrypsin deficiency, glycogen storage disease, and T-cell therapies for cancer. Beam's in vivo liver editing programs (BEAM-302 for glycogen storage disease) represent potential for outpatient gene therapy versus ex vivo approaches requiring hospitalization. Strong IP position with 100+ patents in base editing. Balance sheet with $1+ billion cash provides multi-year runway through key clinical milestones. Management team includes David Liu (Harvard, base editing inventor) as scientific advisor. Partnerships with Pfizer and Apellis provide validation and non-dilutive funding. Key risks include competition from CRISPR and Intellia, clinical trial execution, and manufacturing complexity. No approved products yet. Institutional ownership at 70% with Fidelity, T. Rowe Price, and Casdin Capital. Outlook: Optimistic (base editing proves superior, multiple approvals) - 35% CAGR; Base - 20% CAGR; Pessimistic (technology doesn't differentiate) - 5% CAGR."
+                }
+              ],
+              "sector_winner": "CRISPR Therapeutics (CRSP) is the sector winner as the only company with approved CRISPR therapy, de-risking technology and providing revenue foundation. Casgevy's approval validates gene editing's therapeutic potential and creates $2+ billion peak sales opportunity, funding pipeline development without dilution. The Vertex partnership provides commercialization muscle while maintaining 50% economics. CRISPR's diversified approach (ex vivo and in vivo editing, oncology and genetic diseases) reduces single-program risk versus competitors. While Recursion offers platform leverage and Beam has next-gen technology, neither has approved products or revenue. CRISPR's $1.8 billion cash, 60% institutional ownership including strategic investor Bayer, and first-mover advantage in commercial gene editing position it as sector leader. The company's IP position and clinical pipeline (CTX110, CTX120 showing promise) provide multiple value inflection points over 2-5 year horizon. As gene editing transitions from concept to commercial reality, CRISPR's proven execution and revenue generation create sustainable competitive advantage."
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Sector Analysis Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sector Analysis Agent": {
+      "main": [
+        [
+          {
+            "node": "Company Analysis Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude for Sector Agent": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sector Analysis Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sector Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Sector Analysis Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude for Company Agent": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Company Analysis Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Company Analysis Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company Analysis Agent": {
+      "main": [
+        [
+          {
+            "node": "Split into Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split into Companies": {
+      "main": [
+        [
+          {
+            "node": "Bot channel text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Private channel text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Company Analysis Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2f62e776-0e0a-4609-bcb9-c3fbde9b9f31",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c1a3524e3b86ff17eb4db106512c7ee8831ed43f9bdf32b2aa43da01542697d"
+  },
+  "id": "A19rEEogU8bZzHeJ",
+  "tags": [
+    {
+      "updatedAt": "2025-12-17T14:00:57.024Z",
+      "createdAt": "2025-12-17T14:00:57.024Z",
+      "id": "2eafKPL7GoKnnI4Z",
+      "name": "investment"
+    },
+    {
+      "updatedAt": "2025-12-19T13:11:52.079Z",
+      "createdAt": "2025-12-19T13:11:52.079Z",
+      "id": "OYjfYEC4w7adP79K",
+      "name": "ai-agent"
+    },
+    {
+      "updatedAt": "2025-12-17T14:00:57.052Z",
+      "createdAt": "2025-12-17T14:00:57.052Z",
+      "id": "UmlnqCFsuin8VgiM",
+      "name": "finance"
+    },
+    {
+      "updatedAt": "2025-12-17T14:00:56.980Z",
+      "createdAt": "2025-12-17T14:00:56.980Z",
+      "id": "et1ywT9r0EwKcsER",
+      "name": "analysis"
+    }
+  ]
+}
